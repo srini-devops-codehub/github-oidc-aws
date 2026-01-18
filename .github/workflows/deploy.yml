@@ -1,0 +1,45 @@
+name: Deploy to AWS using OIDC
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write    # Required for OIDC token
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::494662239150:role/github-oidc-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS authentication
+        run: |
+          echo "AWS Account ID:"
+          aws sts get-caller-identity --query Account --output text
+          echo "AWS User/Role:"
+          aws sts get-caller-identity --query Arn --output text
+
+      - name: List S3 buckets (example)
+        run: aws s3 ls
+
+      - name: Deploy application
+        run: |
+          echo "Add your deployment commands here"
+          # Example: sam deploy, terraform apply, etc.
